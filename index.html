@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kebab Palace – Live Order Board</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-elevated: #111827;
+      --accent: #f97316;
+      --accent-soft: rgba(249, 115, 22, 0.12);
+      --text: #e5e7eb;
+      --text-soft: #9ca3af;
+      --border: #1f2933;
+      --danger: #ef4444;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --shadow-soft: 0 18px 40px rgba(0,0,0,0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #1f2937 0, #020617 55%, #000 100%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .app-shell {
+      max-width: 1200px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      background: conic-gradient(from 220deg, #f97316, #facc15, #f97316);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #111827;
+      font-weight: 800;
+      box-shadow: 0 0 30px rgba(248, 189, 60, 0.7);
+    }
+
+    h1 {
+      font-size: 1.4rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .subtitle {
+      font-size: 0.75rem;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.25em;
+    }
+
+    .status-pill {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      border: 1px solid rgba(249, 115, 22, 0.4);
+      background: rgba(15,23,42,0.8);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--accent);
+      box-shadow: 0 0 10px rgba(249,115,22,0.8);
+    }
+
+    .main-card {
+      background: linear-gradient(145deg, rgba(15,23,42,0.94), rgba(15,23,42,0.96));
+      border-radius: 24px;
+      padding: 18px 18px 18px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      box-shadow: var(--shadow-soft);
+      backdrop-filter: blur(20px);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      overflow: hidden;
+    }
+
+    .top-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Form */
+
+    .order-form {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--text-soft);
+    }
+
+    input, textarea {
+      background: rgba(15,23,42, 0.9);
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      color: var(--text);
+      font-size: 0.85rem;
+      outline: none;
+      transition: border 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+      resize: none;
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: #6b7280;
+      font-size: 0.8rem;
+    }
+
+    input:focus, textarea:focus {
+      border-color: rgba(249,115,22,0.75);
+      box-shadow: 0 0 0 1px rgba(249,115,22,0.35);
+      background: rgba(15,23,42, 0.98);
+    }
+
+    .btn-primary {
+      border: none;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #f97316, #facc15);
+      color: #111827;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 10px 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      box-shadow: 0 14px 35px rgba(250, 204, 21, 0.35);
+      transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+      width: 100%;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 18px 40px rgba(250, 204, 21, 0.5);
+      filter: brightness(1.05);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.55);
+      filter: brightness(0.98);
+    }
+
+    .btn-icon {
+      font-size: 1.1rem;
+    }
+
+    /* Board */
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 12px;
+      margin-top: 6px;
+    }
+
+    .column {
+      border-radius: var(--radius-lg);
+      background: radial-gradient(circle at top left, rgba(55,65,81,0.3), rgba(15,23,42,0.95));
+      padding: 12px;
+      border: 1px solid rgba(31,41,55,0.9);
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .column-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 2px;
+    }
+
+    .column-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.16em;
+      color: var(--text-soft);
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      color: var(--text-soft);
+    }
+
+    .column.new {
+      box-shadow: 0 0 0 1px rgba(59,130,246,0.35);
+    }
+
+    .column.preparing {
+      box-shadow: 0 0 0 1px rgba(234,179,8,0.35);
+    }
+
+    .column.ready {
+      box-shadow: 0 0 0 1px rgba(16,185,129,0.35);
+    }
+
+    .column.collected {
+      box-shadow: 0 0 0 1px rgba(148,163,184,0.35);
+    }
+
+    .orders-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    .order-card {
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(31,41,55,0.95);
+      padding: 8px 9px 7px;
+      background: linear-gradient(145deg, rgba(15,23,42,0.95), rgba(15,23,42,0.98));
+      box-shadow: 0 8px 18px rgba(0,0,0,0.4);
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 4px;
+      position: relative;
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 6px;
+    }
+
+    .customer-name {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .timestamp {
+      font-size: 0.7rem;
+      color: var(--text-soft);
+    }
+
+    .items {
+      font-size: 0.8rem;
+      color: #d1d5db;
+    }
+
+    .items strong {
+      color: #fbbf24;
+      font-weight: 500;
+    }
+
+    .notes {
+      font-size: 0.75rem;
+      color: var(--text-soft);
+      display: flex;
+      gap: 4px;
+      align-items: flex-start;
+    }
+
+    .notes-label {
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.65rem;
+      color: #6b7280;
+    }
+
+    .order-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 6px;
+      margin-top: 3px;
+    }
+
+    .status-chip {
+      font-size: 0.72rem;
+      padding: 3px 8px;
+      border-radius: 999px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border: 1px solid rgba(55,65,81,0.9);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-chip-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+    }
+
+    .status-chip.new .status-chip-dot { background: #3b82f6; }
+    .status-chip.preparing .status-chip-dot { background: #eab308; }
+    .status-chip.ready .status-chip-dot { background: #22c55e; }
+    .status-chip.collected .status-chip-dot { background: #9ca3af; }
+
+    .card-actions {
+      display: flex;
+      gap: 4px;
+    }
+
+    .btn-small {
+      border-radius: 999px;
+      border: 1px solid rgba(55,65,81,0.9);
+      background: rgba(15,23,42,0.9);
+      color: var(--text-soft);
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: background 0.12s ease, transform 0.1s ease, border-color 0.12s ease;
+    }
+
+    .btn-small:hover {
+      background: rgba(31,41,55,1);
+      transform: translateY(-0.5px);
+      border-color: rgba(148,163,184,0.6);
+    }
+
+    .btn-small:active {
+      transform: translateY(0);
+    }
+
+    .btn-small.next {
+      border-color: rgba(34,197,94,0.6);
+    }
+
+    .btn-small.delete {
+      border-color: rgba(248,113,113,0.7);
+      color: #fecaca;
+    }
+
+    .empty-state {
+      font-size: 0.75rem;
+      color: #6b7280;
+      border: 1px dashed rgba(55,65,81,0.9);
+      border-radius: 10px;
+      padding: 10px 8px;
+      text-align: center;
+    }
+
+    .error-bar {
+      margin-top: 6px;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 0.75rem;
+      background: rgba(248,113,113,0.14);
+      border: 1px solid rgba(239,68,68,0.9);
+      color: #fecaca;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      font-size: 0.7rem;
+    }
+
+    .pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(55,65,81,0.9);
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    @media (max-width: 960px) {
+      .board {
+        grid-template-columns: repeat(2, minmax(0,1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .order-form {
+        grid-template-columns: 1fr;
+      }
+      .board {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header>
+      <div class="brand">
+        <div class="logo-circle">KP</div>
+        <div>
+          <h1>Kebab Palace</h1>
+          <div class="subtitle">Live Order Board</div>
+        </div>
+      </div>
+      <div class="pill-row">
+        <span class="pill">New → Preparing → Ready → Collected</span>
+        <span class="status-pill">
+          <span class="status-dot"></span>
+          Realtime Firebase Sync
+        </span>
+      </div>
+    </header>
+
+    <main class="main-card">
+      <div class="top-row">
+        <h2 style="font-size:0.95rem; text-transform:uppercase; letter-spacing:0.16em; color:var(--text-soft);">
+          Add New Order
+        </h2>
+      </div>
+
+      <!-- Error message -->
+      <div id="error-bar" class="error-bar" style="display:none;"></div>
+
+      <!-- Order Form -->
+      <form id="order-form" class="order-form" autocomplete="off">
+        <div class="field-group">
+          <label for="customerName">Customer Name</label>
+          <input id="customerName" type="text" required placeholder="e.g. Ahmed, Table 4" />
+        </div>
+        <div class="field-group">
+          <label for="items">Items Summary</label>
+          <input id="items" type="text" required placeholder="2x Chicken Kebab, 1x Fries, 2x Coke" />
+        </div>
+        <div class="field-group">
+          <label for="notes">Notes (Optional)</label>
+          <textarea id="notes" rows="1" placeholder="No onions, extra garlic sauce, spicy, etc."></textarea>
+        </div>
+        <div class="field-group" style="grid-column:1 / -1;">
+          <button type="submit" class="btn-primary">
+            <span class="btn-icon">➕</span>
+            Add Order to Board (Status: New)
+          </button>
+        </div>
+      </form>
+
+      <!-- Board -->
+      <section class="board">
+        <div class="column new">
+          <div class="column-header">
+            <div class="column-title">New</div>
+            <div class="badge" id="count-new">0</div>
+          </div>
+          <div class="orders-list" id="col-new"></div>
+        </div>
+
+        <div class="column preparing">
+          <div class="column-header">
+            <div class="column-title">Preparing</div>
+            <div class="badge" id="count-preparing">0</div>
+          </div>
+          <div class="orders-list" id="col-preparing"></div>
+        </div>
+
+        <div class="column ready">
+          <div class="column-header">
+            <div class="column-title">Ready</div>
+            <div class="badge" id="count-ready">0</div>
+          </div>
+          <div class="orders-list" id="col-ready"></div>
+        </div>
+
+        <div class="column collected">
+          <div class="column-header">
+            <div class="column-title">Collected</div>
+            <div class="badge" id="count-collected">0</div>
+          </div>
+          <div class="orders-list" id="col-collected"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Firebase v9+ modular SDK via CDN -->
+  <!-- Make sure versions exist / update to latest versions from Firebase docs -->
+  <script type="module">
+    /**********************
+     * 1) Firebase Setup  *
+     **********************/
+
+    // TODO: REPLACE with your real config from Firebase console
+    const firebaseConfig = {
+  apiKey: "AIzaSyARONPVE1oKZf8jMTft1zySGgr78n9NjyA",
+  authDomain: "kabab-palace.firebaseapp.com",
+  projectId: "kabab-palace",
+  storageBucket: "kabab-palace.firebasestorage.app",
+  messagingSenderId: "490790186202",
+  appId: "1:490790186202:web:5ef8417e1c2bedf29b89e3"
+};
+
+    // Import from Firebase CDN
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      serverTimestamp,
+      onSnapshot,
+      query,
+      orderBy,
+      doc,
+      updateDoc,
+      deleteDoc
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const ordersRef = collection(db, "orders");
+
+    /***************************
+     * 2) DOM references & UI  *
+     ***************************/
+    const orderForm = document.getElementById("order-form");
+    const customerNameInput = document.getElementById("customerName");
+    const itemsInput = document.getElementById("items");
+    const notesInput = document.getElementById("notes");
+    const errorBar = document.getElementById("error-bar");
+
+    const columns = {
+      new: document.getElementById("col-new"),
+      preparing: document.getElementById("col-preparing"),
+      ready: document.getElementById("col-ready"),
+      collected: document.getElementById("col-collected"),
+    };
+
+    const counts = {
+      new: document.getElementById("count-new"),
+      preparing: document.getElementById("count-preparing"),
+      ready: document.getElementById("count-ready"),
+      collected: document.getElementById("count-collected"),
+    };
+
+    const STATUS_FLOW = ["new", "preparing", "ready", "collected"];
+
+    function showError(message) {
+      console.error(message);
+      errorBar.textContent = message;
+      errorBar.style.display = "block";
+      setTimeout(() => {
+        errorBar.style.display = "none";
+      }, 4500);
+    }
+
+    function formatTimestamp(ts) {
+      if (!ts) return "";
+      try {
+        const date = ts.toDate();
+        const hours = String(date.getHours()).padStart(2, "0");
+        const minutes = String(date.getMinutes()).padStart(2, "0");
+        return `${hours}:${minutes}`;
+      } catch {
+        return "";
+      }
+    }
+
+    function getNextStatus(current) {
+      const index = STATUS_FLOW.indexOf(current);
+      if (index === -1 || index === STATUS_FLOW.length - 1) return null;
+      return STATUS_FLOW[index + 1];
+    }
+
+    function getStatusLabel(status) {
+      switch (status) {
+        case "new": return "New";
+        case "preparing": return "Preparing";
+        case "ready": return "Ready";
+        case "collected": return "Collected";
+        default: return status;
+      }
+    }
+
+    /***********************
+     * 3) Render an order  *
+     ***********************/
+    function createOrderCard(id, data) {
+      const card = document.createElement("article");
+      card.className = "order-card";
+      card.dataset.id = id;
+
+      const createdAtText = formatTimestamp(data.createdAt);
+
+      const notesHtml = data.notes
+        ? `<div class="notes"><span class="notes-label">Notes</span><span>${data.notes}</span></div>`
+        : "";
+
+      card.innerHTML = `
+        <div class="order-header">
+          <div class="customer-name">${data.customerName || "Unknown"}</div>
+          <div class="timestamp">${createdAtText}</div>
+        </div>
+        <div class="items">
+          <strong>Items:</strong> ${data.items || ""}
+        </div>
+        ${notesHtml}
+        <div class="order-footer">
+          <span class="status-chip ${data.status}">
+            <span class="status-chip-dot"></span>
+            ${getStatusLabel(data.status)}
+          </span>
+          <div class="card-actions">
+            <button class="btn-small delete" title="Remove order from board">
+              ✕ Remove
+            </button>
+            ${
+              getNextStatus(data.status)
+                ? `<button class="btn-small next">
+                     Next: ${getStatusLabel(getNextStatus(data.status))}
+                   </button>`
+                : ""
+            }
+          </div>
+        </div>
+      `;
+
+      // Handle click on Next
+      const nextBtn = card.querySelector(".btn-small.next");
+      if (nextBtn) {
+        nextBtn.addEventListener("click", async () => {
+          const nextStatus = getNextStatus(data.status);
+          if (!nextStatus) return;
+          try {
+            await updateDoc(doc(db, "orders", id), { status: nextStatus });
+          } catch (err) {
+            showError("Failed to update order status.");
+          }
+        });
+      }
+
+      // Handle delete
+      const deleteBtn = card.querySelector(".btn-small.delete");
+      deleteBtn.addEventListener("click", async () => {
+        const confirmDelete = window.confirm(
+          "Remove this order from the board? This cannot be undone."
+        );
+        if (!confirmDelete) return;
+        try {
+          await deleteDoc(doc(db, "orders", id));
+        } catch (err) {
+          showError("Failed to remove order.");
+        }
+      });
+
+      return card;
+    }
+
+    function resetColumnsAndCounts() {
+      Object.values(columns).forEach(col => (col.innerHTML = ""));
+      Object.keys(counts).forEach(status => {
+        counts[status].textContent = "0";
+      });
+    }
+
+    function incrementCount(status) {
+      if (!counts[status]) return;
+      const current = parseInt(counts[status].textContent || "0", 10);
+      counts[status].textContent = current + 1;
+    }
+
+    /**************************
+     * 4) Firestore Listener  *
+     **************************/
+    const q = query(ordersRef, orderBy("createdAt", "asc"));
+
+    onSnapshot(
+      q,
+      snapshot => {
+        resetColumnsAndCounts();
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const status = data.status || "new";
+          const col = columns[status] || columns["new"];
+          const card = createOrderCard(docSnap.id, data);
+          col.appendChild(card);
+          incrementCount(status);
+        });
+
+        // Show empty state if needed
+        Object.keys(columns).forEach(status => {
+          if (!columns[status].hasChildNodes()) {
+            const empty = document.createElement("div");
+            empty.className = "empty-state";
+            empty.textContent = "No orders in this stage.";
+            columns[status].appendChild(empty);
+          }
+        });
+      },
+      error => {
+        showError("Realtime connection failed. Check Firebase config / network.");
+        console.error(error);
+      }
+    );
+
+    /***********************
+     * 5) Form submission  *
+     ***********************/
+    orderForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const customerName = customerNameInput.value.trim();
+      const items = itemsInput.value.trim();
+      const notes = notesInput.value.trim();
+
+      if (!customerName || !items) {
+        showError("Customer name and items summary are required.");
+        return;
+      }
+
+      try {
+        await addDoc(ordersRef, {
+          customerName,
+          items,
+          notes,
+          status: "new",
+          createdAt: serverTimestamp(),
+        });
+
+        // Reset inputs (keep notes optional)
+        customerNameInput.value = "";
+        itemsInput.value = "";
+        notesInput.value = "";
+        customerNameInput.focus();
+      } catch (err) {
+        console.error(err);
+        showError("Failed to add order. Check your Firebase configuration.");
+      }
+    });
+  </script>
+</body>
+</html>
